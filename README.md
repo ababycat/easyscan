@@ -1,1 +1,1 @@
-# EasyScal
+# EasyScan
