@@ -1,0 +1,191 @@
+#!/usr/bin/python
+"""
+localize qr code and process laser image
+"""
+import sys
+import time
+import numpy as np
+import rospy
+
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import message_filters
+
+import cv2
+
+def angle(vec1, vec2):
+    return np.arccos(np.sum(vec1*vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2)))
+ 
+
+def find_QRcode(img1):
+    results = {
+        "abc_find_ok": False,
+        "little_find_ok": False,
+        "points":None
+    }
+    image = img1
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    #    th, image_otsu = cv2.threshold(image_gray, 0, 255, cv2.THRESH_OTSU)
+    image_adapt = cv2.adaptiveThreshold(image_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 41, 5)
+    
+    _, contours, hierachy = cv2.findContours(image_adapt, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE, None, None)
+
+    buff_lis = []
+    little_buff_lis = []
+    for idx, c in enumerate(contours):
+        area = cv2.contourArea(c)
+        if area < 50:
+            continue
+        next_id = hierachy[0, idx, -2]
+        if next_id == -1:
+            continue
+        next_area = cv2.contourArea(contours[next_id])
+        next_next_id = hierachy[0, next_id, -2]
+        if next_next_id == -1:
+            continue
+        next_next_area = cv2.contourArea(contours[next_next_id])
+        if next_next_area < 1:
+            continue
+    
+        n = np.array([area/25, next_area/16, next_next_area/9], np.float32)
+        try:
+            if np.sum(np.abs(np.array([n[0]/n[1], n[1]/n[2], n[0]/n[2]])-1)) < 3:
+                buff_lis.append(c)
+            else:
+                n = np.array([area/25, next_area/9, next_next_area/1], np.float32)
+                if np.sum(np.abs(np.array([n[0]/n[1], n[1]/n[2], n[0]/n[2]])-1)) < 3:
+                    little_buff_lis.append(c)
+        except:
+            print('error', n[0], n[1], n[2])
+    
+    #     buff_lis.append(c)
+    results["contours"] = [buff_lis, little_buff_lis] 
+    if len(buff_lis) == 3:
+        results["abc_find_ok"] = True  
+    
+        if len(little_buff_lis) == 1:
+            results["little_find_ok"] = True
+        else:
+            return results 
+    else:
+        return results 
+    # image = cv2.drawContours(image, np.array(little_buff_lis),  -1, (0, 255, 0), 1, 1)
+    #  plt.figure(figsize=[10, 10])
+    #  plt.imshow(image)
+    #  plt.show()
+    
+    # \
+    # \   b_loc _______ opposit_loc
+    # \        /      /
+    # \       /      /
+    # \      /______/
+    # \  little_loc  a_loc
+    
+    little_loc = np.mean(little_buff_lis[0], axis=0)
+    vectors = []
+    points = []
+    for rect in buff_lis:
+        rect1 = cv2.minAreaRect(rect)
+        box1 = cv2.boxPoints(rect1)
+        point = np.mean(box1, axis=0)
+        vec = point - little_loc
+        points.append(point)
+        vectors.append(vec)
+   
+    thetas = np.zeros((3,))
+    thetas[0] = angle(vectors[1], vectors[2])
+    thetas[1] = angle(vectors[0], vectors[2])
+    thetas[2] = angle(vectors[0], vectors[1])
+    
+    print(thetas/np.pi*180)
+    opposit_loc = np.argmax(thetas)
+    lis = [0, 1, 2]
+    lis.remove(opposit_loc)
+    
+    a = vectors[opposit_loc]
+    b = vectors[lis[0]]
+    omega1 = np.cross(a, b)
+    
+    a = vectors[opposit_loc]
+    b = vectors[lis[1]]
+    omega2 = np.cross(a, b)
+    
+    bugflag = False
+    if omega1*omega2 >= 0:
+        bugflag = True
+    else:
+        a_loc = lis[0] if omega1 > 0 else lis[1]
+        b_loc = lis[0] if omega1 < 0 else lis[1]
+        
+    feature_points = np.zeros((4, 2))
+    feature_points[0, :] = little_loc
+    feature_points[1, :] = points[a_loc]
+    feature_points[2, :] = points[b_loc]
+    feature_points[3, :] = points[opposit_loc]
+    
+    results["points"] = feature_points
+    return results
+
+
+def drawKeyPoints(points_dict, image):
+    feature_points = points_dict["points"]
+    color = [(255, 255, 0), (255, 0, 0), (0, 255, 0), (0, 0, 255)]
+    text = ['little', 'a', 'b', 'c']
+    for idx in range(4):
+        loc = tuple(feature_points[idx, :])
+        image = cv2.circle(image, tuple([int(x) for x in loc]), 2, color[idx], 2)
+        cv2.putText(image, text[idx], tuple([int(x)+5 for x in loc]), cv2.FONT_HERSHEY_COMPLEX, 1, color[idx], 2)
+
+
+def drawContours(buff_list, image):
+    abc_list, little_list = buff_list
+    for c in abc_list:
+        image = cv2.drawContours(image, np.array([c]), -1, (255, 0, 0), 1, 1)
+    for c in little_list:
+        image = cv2.drawContours(image, np.array([c]), -1, (0, 255, 0), 1, 1)
+    
+    
+image_pub = rospy.Publisher("results_image", Image, queue_size=1)
+
+bridge = CvBridge()
+# def callback(data0, data1):
+#     global bridge
+#     img0 = bridge.imgmsg_to_cv2(data0, "bgr8")
+#     img1 = bridge.imgmsg_to_cv2(data1, "bgr8")
+# 
+#     find_results = find_QRcode(img0) 
+#     if find_results["abc_find_ok"] and find_results["little_find_ok"]:
+#         drawKeyPoints(find_results, img0)
+#     drawContours(find_results["contours"], img0)  
+#     img_msg = bridge.cv2_to_imgmsg(img0, "bgr8")    
+#     image_pub.publish(img_msg)
+#     rospy.loginfo("time") 
+def callback(data):
+    global bridge
+    img = bridge.imgmsg_to_cv2(data, "bgr8")
+
+    find_results = find_QRcode(img) 
+    if find_results["abc_find_ok"] and find_results["little_find_ok"]:
+        drawKeyPoints(find_results, img)
+    drawContours(find_results["contours"], img)  
+    img_msg = bridge.cv2_to_imgmsg(img, "bgr8")    
+    image_pub.publish(img_msg)
+    rospy.loginfo("QRcode published") 
+
+
+
+
+if __name__ == "__main__":
+    rospy.init_node("localize_node", log_level=rospy.INFO)
+    
+#    camera0 = message_filters.Subscriber('camera/camera0', Image, queue_size=1, buff_size=2**24)
+#    camera1 = message_filters.Subscriber('camera/camera1', Image, queue_size=1, buff_size=2**24)
+#    
+#    ts = message_filters.TimeSynchronizer([camera0, camera1], 1)
+#    ts.registerCallback(callback)
+    subcriber = rospy.Subscriber('camera/camera0', Image, callback, queue_size=1, buff_size=2**24)    
+    
+
+    while not rospy.is_shutdown():
+        rospy.spin()
+

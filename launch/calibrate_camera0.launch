@@ -1,0 +1,10 @@
+<launch>
+
+    <!-- gst_camera nodelet -->
+    <node name="camera_node"
+          pkg="easyscan" type="camera_node"
+          args="">
+          <remap from="camera/image0" to="camera/image"/>
+    </node>
+
+</launch>

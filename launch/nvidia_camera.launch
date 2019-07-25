@@ -1,0 +1,36 @@
+<launch>
+    <node name="camera_node0"
+        pkg="easyscan"
+        type="nvidia_camera_node"
+        output="screen"
+        >
+        <remap from="camera/image" to="camera/camera0"/>
+ 
+        <param name="numberCameraName" type="bool" value="false"/>
+        <param name="cameraName" type="string" value="nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)640, height=(int)480,format=(string)I420, framerate=(fraction)24/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"/> 
+    </node>
+    
+    <node name="camera_node1"
+        pkg="easyscan"
+        type="nvidia_camera_node"
+        output="screen"
+    >
+        <remap from="camera/image" to="camera/camera1"/>
+        <param name="numberCameraName" type="bool" value="true"/>
+        <param name="cameraName" type="int" value="1"/>
+    </node>
+    
+
+    <node name="localize_node" pkg="easyscan" type="localize_QRcode.py" output="screen">
+        
+    </node>
+
+    <node name="laser_node" pkg="easyscan" type="laser_process.py" output="screen">
+    </node>
+
+    <!---
+     <node name="gen_cloud_node" pkg="easyscan" type="generate_points_cloud.py" output="screen">
+    </node> 
+    -->
+
+</launch>
