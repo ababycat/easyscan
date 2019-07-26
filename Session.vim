@@ -28,10 +28,11 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +46 CMakeLists.txt
+badd +99 CMakeLists.txt
 badd +16 src/nvidia_camera_node.cpp
 badd +12 script/localize_QRcode.py
 badd +1 launch/nvidia_camera.launch
+badd +0 script/laser_process.py
 argglobal
 silent! argdel *
 argadd CMakeLists.txt
@@ -53,13 +54,13 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe '1resize ' . ((&lines * 30 + 30) / 60)
+exe '1resize ' . ((&lines * 31 + 30) / 60)
 exe 'vert 1resize ' . ((&columns * 87 + 102) / 204)
-exe '2resize ' . ((&lines * 27 + 30) / 60)
+exe '2resize ' . ((&lines * 26 + 30) / 60)
 exe 'vert 2resize ' . ((&columns * 87 + 102) / 204)
-exe '3resize ' . ((&lines * 24 + 30) / 60)
+exe '3resize ' . ((&lines * 25 + 30) / 60)
 exe 'vert 3resize ' . ((&columns * 116 + 102) / 204)
-exe '4resize ' . ((&lines * 33 + 30) / 60)
+exe '4resize ' . ((&lines * 32 + 30) / 60)
 exe 'vert 4resize ' . ((&columns * 116 + 102) / 204)
 argglobal
 setlocal keymap=
@@ -170,7 +171,7 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 18 - ((14 * winheight(0) + 15) / 30)
+let s:l = 18 - ((14 * winheight(0) + 15) / 31)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -178,7 +179,7 @@ normal! zt
 normal! 056|
 wincmd w
 argglobal
-edit CMakeLists.txt
+edit script/laser_process.py
 setlocal keymap=
 setlocal noarabic
 setlocal noautoindent
@@ -212,8 +213,8 @@ setlocal nodiff
 setlocal equalprg=
 setlocal errorformat=
 setlocal expandtab
-if &filetype != 'cmake'
-setlocal filetype=cmake
+if &filetype != 'python'
+setlocal filetype=python
 endif
 setlocal fixendofline
 setlocal foldcolumn=0
@@ -272,8 +273,8 @@ setlocal statusline=
 setlocal suffixesadd=
 setlocal swapfile
 setlocal synmaxcol=3000
-if &syntax != 'cmake'
-setlocal syntax=cmake
+if &syntax != 'python'
+setlocal syntax=python
 endif
 setlocal tabstop=4
 setlocal tagcase=
@@ -287,12 +288,12 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 99 - ((24 * winheight(0) + 13) / 27)
+let s:l = 97 - ((11 * winheight(0) + 13) / 26)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-99
-normal! 0
+97
+normal! 06|
 wincmd w
 argglobal
 edit src/nvidia_camera_node.cpp
@@ -404,7 +405,7 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 20 - ((6 * winheight(0) + 12) / 24)
+let s:l = 20 - ((6 * winheight(0) + 12) / 25)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -521,22 +522,22 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 133 - ((8 * winheight(0) + 16) / 33)
+let s:l = 144 - ((0 * winheight(0) + 16) / 32)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-133
+144
 normal! 025|
 lcd ~/X/catkin_ws/src/easyscan
 wincmd w
-4wincmd w
-exe '1resize ' . ((&lines * 30 + 30) / 60)
+2wincmd w
+exe '1resize ' . ((&lines * 31 + 30) / 60)
 exe 'vert 1resize ' . ((&columns * 87 + 102) / 204)
-exe '2resize ' . ((&lines * 27 + 30) / 60)
+exe '2resize ' . ((&lines * 26 + 30) / 60)
 exe 'vert 2resize ' . ((&columns * 87 + 102) / 204)
-exe '3resize ' . ((&lines * 24 + 30) / 60)
+exe '3resize ' . ((&lines * 25 + 30) / 60)
 exe 'vert 3resize ' . ((&columns * 116 + 102) / 204)
-exe '4resize ' . ((&lines * 33 + 30) / 60)
+exe '4resize ' . ((&lines * 32 + 30) / 60)
 exe 'vert 4resize ' . ((&columns * 116 + 102) / 204)
 tabnext 1
 if exists('s:wipebuf')

@@ -1,10 +1,18 @@
 <launch>
 
     <!-- gst_camera nodelet -->
-    <node name="camera_node"
-          pkg="easyscan" type="camera_node"
-          args="">
-          <remap from="camera/image0" to="camera/image"/>
+    <!--
+    <node name="gst_camera"
+          pkg="nodelet" type="nodelet"
+          args="load ros_jetson_video/gst_camera standalone_nodelet">
+          <remap from="~image_raw" to="/image_raw"/>
     </node>
-
+    -->
+    
+    <node name="nvidia_camera_calibrate"
+        pkg="camera_calibration"
+        args="--size 7x5 --square 0.03 image:=/camera/camera0 --no-service-check"
+        type="cameracalibrator.py">
+    </node> 
+    
 </launch>
