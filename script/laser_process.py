@@ -82,7 +82,7 @@ def enhance_guidedFilter(img):
     img = img.astype(np.uint8)
     return img
 
-image_pub = rospy.Publisher("laser_results_image", Image, queue_size=1)
+image_pub = rospy.Publisher("results/laser", Image, queue_size=1)
 
 bridge = CvBridge()
 def callback(data):
@@ -100,9 +100,12 @@ def callback(data):
 
 
 if __name__ == "__main__":
-    rospy.init_node("laser_node", log_level=rospy.INFO)
+    rospy.init_node("laserProcess", log_level=rospy.INFO)
     
-    subcriber = rospy.Subscriber('camera/camera1', Image, callback, queue_size=1, buff_size=2**24) 
+    this_node_name = rospy.get_name()
+    laserNodeName = rospy.get_param(this_node_name+'/imageNode')
+
+    subcriber = rospy.Subscriber(laserNodeName, Image, callback, queue_size=1, buff_size=2**24) 
     
 
     while not rospy.is_shutdown():

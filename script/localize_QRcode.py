@@ -145,7 +145,7 @@ def drawContours(buff_list, image):
         image = cv2.drawContours(image, np.array([c]), -1, (0, 255, 0), 1, 1)
     
     
-image_pub = rospy.Publisher("results_image", Image, queue_size=1)
+image_pub = rospy.Publisher("results/image", Image, queue_size=1)
 
 bridge = CvBridge()
 # def callback(data0, data1):
@@ -176,14 +176,17 @@ def callback(data):
 
 
 if __name__ == "__main__":
-    rospy.init_node("localize_node", log_level=rospy.INFO)
+    rospy.init_node("localize", log_level=rospy.INFO)
     
 #    camera0 = message_filters.Subscriber('camera/camera0', Image, queue_size=1, buff_size=2**24)
 #    camera1 = message_filters.Subscriber('camera/camera1', Image, queue_size=1, buff_size=2**24)
 #    
 #    ts = message_filters.TimeSynchronizer([camera0, camera1], 1)
 #    ts.registerCallback(callback)
-    subcriber = rospy.Subscriber('camera/camera0', Image, callback, queue_size=1, buff_size=2**24)    
+    this_node_name = rospy.get_name()
+    imageNodeName = rospy.get_param(this_node_name + '/imageNode')
+
+    subcriber = rospy.Subscriber(imageNodeName, Image, callback, queue_size=1, buff_size=2**24)    
     
 
     while not rospy.is_shutdown():

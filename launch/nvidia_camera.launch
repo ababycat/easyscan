@@ -26,17 +26,25 @@
  
     </node>
     
-    <!--
+    <node name="image_proc0" pkg="image_proc" type="image_proc" ns="camera0"> </node>
+
+    <node name="image_proc1" pkg="image_proc" type="image_proc" ns="camera1"> </node>
+ 
+    
     <node name="localize_node" pkg="easyscan" type="localize_QRcode.py" output="screen">
-        
+        <param name="imageNode" type="string" value="camera0/image_rect_color"/>    
+    </node>
+   
+
+
+    
+    <node name="laser_node" pkg="easyscan" type="laser_process.py" output="screen">
+        <param name="imageNode" type="string" value="camera1/image_rect_color"/>
     </node>
 
-    <node name="laser_node" pkg="easyscan" type="laser_process.py" output="screen">
-    </node>
-    -->
-    <!---
+   <!-- 
      <node name="gen_cloud_node" pkg="easyscan" type="generate_points_cloud.py" output="screen">
     </node> 
-    -->
+   --> 
 
 </launch>
