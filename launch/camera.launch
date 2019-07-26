@@ -1,5 +1,0 @@
-<launch>
-    <node name="camera_node" type="camera_node" pkg="easyscan"> 
-    </node>
-
-</launch>

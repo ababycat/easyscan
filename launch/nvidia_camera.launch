@@ -1,33 +1,39 @@
 <launch>
-    <node name="camera_node0"
+    <node name="camera0"
         pkg="easyscan"
-        type="nvidia_camera_node"
+        type="camera_node"
         output="screen"
         >
-        <remap from="camera/image" to="camera/camera0"/>
+        <remap from="camera/image_raw" to="camera0/image_raw"/>
  
         <param name="numberCameraName" type="bool" value="false"/>
         <param name="cameraName" type="string" value="nvcamerasrc ! video/x-raw(memory:NVMM), width=(int)640, height=(int)480,format=(string)I420, framerate=(fraction)24/1 ! nvvidconv flip-method=0 ! video/x-raw, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"/> 
+        <param name="needCameraInfo" type="bool" value="true"/>
+        <param name="cameraCalibrationFileName" type="string" value="$(find easyscan)/config/ost0.yaml"/>
+
     </node>
     
-    <node name="camera_node1"
+    <node name="camera1"
         pkg="easyscan"
-        type="nvidia_camera_node"
+        type="camera_node"
         output="screen"
     >
-        <remap from="camera/image" to="camera/camera1"/>
+        <remap from="camera/image_raw" to="camera1/image_raw"/>
         <param name="numberCameraName" type="bool" value="true"/>
         <param name="cameraName" type="int" value="1"/>
+        <param name="needCameraInfo" type="bool" value="true"/>
+        <param name="cameraCalibrationFileName" type="string" value="$(find easyscan)/config/ost1.yaml"/>
+ 
     </node>
     
-
+    <!--
     <node name="localize_node" pkg="easyscan" type="localize_QRcode.py" output="screen">
         
     </node>
 
     <node name="laser_node" pkg="easyscan" type="laser_process.py" output="screen">
     </node>
-
+    -->
     <!---
      <node name="gen_cloud_node" pkg="easyscan" type="generate_points_cloud.py" output="screen">
     </node> 

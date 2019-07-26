@@ -32,9 +32,9 @@ set(process_SRCS
 set(camera_node_SRCS
     src/camera_node.cpp 
     src/util.cpp)
-set(nvidia_camera_node_SRCS
-    src/nvidia_camera_node.cpp
-    src/util.cpp)
+# set(nvidia_camera_node_SRCS
+#     src/nvidia_camera_node.cpp
+#     src/util.cpp)
     
 set(INCLUDE_DIRS
     include/${PROJECT_NAME})
@@ -47,6 +47,7 @@ find_package(catkin REQUIRED COMPONENTS
     rospy
     cv_bridge
     image_transport
+    camera_calibration_parsers
     std_msgs)
 
 find_package(Eigen3 REQUIRED)
@@ -77,11 +78,11 @@ add_executable(take_photos ${take_photos_SRCS})
 target_link_libraries(take_photos ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 # camera node
+#add_executable(camera_node ${camera_node_SRCS})
+#target_link_libraries(camera_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
 add_executable(camera_node ${camera_node_SRCS})
 target_link_libraries(camera_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
-
-add_executable(nvidia_camera_node ${nvidia_camera_node_SRCS})
-target_link_libraries(nvidia_camera_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 
 add_executable(calibrate ${calibrate_SRCS})
