@@ -4,7 +4,7 @@ easyscan NOT easy
 
 ## Part 1 using ros
 ### Calibrate the camera
-Use ros package camera_calibration to get the camera intrinsic parameters
+Use ros package camera_calibration to get the camera intrinsic parameters. The calibration boards can found here [chessboard](./files/chessboard.pdf), [laser_plane](./files/laser_calibration(8x3)_20mm.pdf) 
 1. calibrate the first camera
 ```roslaunch easyscan calibrate_camera0.launch```
 
