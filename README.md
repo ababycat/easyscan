@@ -16,6 +16,7 @@ Move the calibration results to folder `config`, and named the two yaml files as
 3. calibrate the laser plane and camera
 
 Reference: Fast method to calibrate structure parameters of line structured light vision sensor
+
 Use this command to calibrate the laser and camera
 ```roslaunch easy calibrate_laser_plane.launch```
 The calibration results will be saved in file `config/laser_plane.yaml`
