@@ -5,23 +5,23 @@ easyscan NOT easy
 ## Part 1 using ros
 ### Calibrate the camera
 Use ros package camera_calibration to get the camera intrinsic parameters
-#### calibrate the first camera
+1. calibrate the first camera
 `roslaunch easyscan calibrate_camera0.launch`
 
-#### calibrate the second camera
+2. calibrate the second camera
 `roslaunch easyscan calibrate_camera1.launch`
 
-Move the calibration results to folder `config`, and named the two yaml files as "ost0.yaml" and "ost1.yaml".
+Move the calibration results to folder `config`, and named the two yaml files as `ost0.yaml` and `ost1.yaml`.
 
-#### calibrate the laser plane and camera
+3. calibrate the laser plane and camera
 
 Reference: Fast method to calibrate structure parameters of line structured light vision sensor
 Use this command to calibrate the laser and camera
 `roslaunch easy calibrate_laser_plane.launch`
-The calibration results will save in file `config/laser_plane.yaml`
+The calibration results will be saved in file `config/laser_plane.yaml`
 It will save three parameters, theta0, theta1, theta2, which represented the laser plane equation in camera1 coordintate system.
 
-#### calibrate the transform matrix between camera1 and the QR_code
+4. calibrate the transform matrix between camera1 and the QR_code
 We use the camera0 to assist the calibration.
 In this step, we should use the keyboard. 
 * First, run the command
