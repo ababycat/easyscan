@@ -10,8 +10,10 @@ import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import message_filters
+from sensor_msgs.msg import CameraInfo
 
 import cv2
+import tf
 
 def angle(vec1, vec2):
     return np.arccos(np.sum(vec1*vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2)))
@@ -81,7 +83,15 @@ def find_QRcode(img1):
     # \      /______/
     # \  little_loc  a_loc
     
-    little_loc = np.mean(little_buff_lis[0], axis=0)
+    # little_loc = np.mean(little_buff_lis[0], axis=0)
+    m = cv2.moments(little_buff_lis[0])
+    m00 = m['m00']
+    m01 = m['m01']
+    m10 = m['m10']
+    cx = m10/m00
+    cy = m01/m00
+    little_loc = np.array([[cx, cy]], dtype=np.float32)
+
     vectors = []
     points = []
     for rect in buff_lis:
@@ -97,7 +107,7 @@ def find_QRcode(img1):
     thetas[1] = angle(vectors[0], vectors[2])
     thetas[2] = angle(vectors[0], vectors[1])
     
-    print(thetas/np.pi*180)
+    # print(thetas/np.pi*180)
     opposit_loc = np.argmax(thetas)
     lis = [0, 1, 2]
     lis.remove(opposit_loc)
@@ -127,12 +137,12 @@ def find_QRcode(img1):
     return results
 
 
-def drawKeyPoints(points_dict, image):
-    feature_points = points_dict["points"]
+def drawKeyPoints(points, image):
+    # feature_points = points_dict["points"]
     color = [(255, 255, 0), (255, 0, 0), (0, 255, 0), (0, 0, 255)]
     text = ['little', 'a', 'b', 'c']
     for idx in range(4):
-        loc = tuple(feature_points[idx, :])
+        loc = tuple(points[idx, :])
         image = cv2.circle(image, tuple([int(x) for x in loc]), 2, color[idx], 2)
         cv2.putText(image, text[idx], tuple([int(x)+5 for x in loc]), cv2.FONT_HERSHEY_COMPLEX, 1, color[idx], 2)
 
@@ -146,6 +156,13 @@ def drawContours(buff_list, image):
     
     
 image_pub = rospy.Publisher("results/image", Image, queue_size=1)
+cameraMatrix = None
+distCoeffs = None
+cameraInfo_done = False
+object_points = np.array([[0.09, 0.095, 0], [0.1, 0, 0], [0, 0.1, 0], [0, 0, 0]]) 
+# object_points = np.array([[0.09, 0.095, 0], [0.1, 0, 0], [0, 0, 0], [0, 0.1, 0]) 
+rvec = None 
+tvec = None 
 
 bridge = CvBridge()
 # def callback(data0, data1):
@@ -160,19 +177,51 @@ bridge = CvBridge()
 #     img_msg = bridge.cv2_to_imgmsg(img0, "bgr8")    
 #     image_pub.publish(img_msg)
 #     rospy.loginfo("time") 
+br = tf.TransformBroadcaster()
 def callback(data):
-    global bridge
+    global bridge, object_points, cameraMatirx, distCoeffs, rvec, tvec 
     img = bridge.imgmsg_to_cv2(data, "bgr8")
 
     find_results = find_QRcode(img) 
     if find_results["abc_find_ok"] and find_results["little_find_ok"]:
-        drawKeyPoints(find_results, img)
+        points = find_results["points"]
+        print('####################################3')
+        print(points)
+        # solved, rvec, tvec = cv2.solvePnP(object_points, points[1:, :], cameraMatrix, distCoeffs, rvec, tvec, useExtrinsicGuess=True, flags=cv2.SOLVEPNP_ITERATIVE) 
+        solved, rvec, tvec = cv2.solvePnP(object_points, points, cameraMatrix, distCoeffs) # flags=cv2.SOLVEPNP_ITERATIVE) 
+        print(cameraMatrix)
+        print(distCoeffs)
+        print(solved, rvec, tvec) 
+        # publish place
+        # TODO
+                         
+        time_now = rospy.Time.now()
+        t = tuple(tvec.squeeze())
+        # r = tuple(rvec.squeeze())
+        r, _ = cv2.Rodrigues(rvec)
+        tmp = np.zeros((4, 4))
+        tmp[:3, 0:3] = r
+        tmp[3, 3] = 1
+        r = tmp 
+ 
+        # br.sendTransform((0, 0, 0), (0, 0, 0, 1), time_now, 'qrcode', 'camera0') 
+        # br.sendTransform(t, tf.transformations.quaternion_from_euler(*r), time_now, 'qrcode', 'camera0') 
+        br.sendTransform(t, tf.transformations.quaternion_from_matrix(r), time_now, 'qrcode', 'camera0') 
+
+        drawKeyPoints(points, img)
     drawContours(find_results["contours"], img)  
     img_msg = bridge.cv2_to_imgmsg(img, "bgr8")    
     image_pub.publish(img_msg)
     rospy.loginfo("QRcode published") 
 
 
+def callback_cameraInfo(info):
+    global cameraInfo_done, cameraMatrix, distCoeffs
+    cameraInfo_done = True
+    
+    cameraMatrix = np.array(info.K).reshape(3, 3)
+    distCoeffs = np.array(info.D).reshape(5, 1)
+    
 
 
 if __name__ == "__main__":
@@ -185,10 +234,16 @@ if __name__ == "__main__":
 #    ts.registerCallback(callback)
     this_node_name = rospy.get_name()
     imageNodeName = rospy.get_param(this_node_name + '/imageNode')
+    infoNodeName = rospy.get_param(this_node_name + '/infoNode') 
 
     subcriber = rospy.Subscriber(imageNodeName, Image, callback, queue_size=1, buff_size=2**24)    
-    
+    cameraInfo_sub = rospy.Subscriber(infoNodeName, CameraInfo, callback_cameraInfo, queue_size=1, buff_size=2**24)  
 
+    global cameraInfo_done
+    while not cameraInfo_done:
+        rospy.sleep(0.01)        
+    cameraInfo_sub.unregister()
+   
     while not rospy.is_shutdown():
         rospy.spin()
 

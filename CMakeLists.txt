@@ -48,16 +48,32 @@ find_package(catkin REQUIRED COMPONENTS
     cv_bridge
     image_transport
     camera_calibration_parsers
+    message_generation
+    tf
+    geometry_msgs
     std_msgs)
 
 find_package(Eigen3 REQUIRED)
+
+add_message_files(
+  FILES
+  npfloat32.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
 
 catkin_package(
 #    INCLUDE_DIRS include
 #  LIBRARIES test
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
+  CATKIN_DEPENDS message_runtime
 )
+
 
 include_directories(
     ${INCLUDE_DIRS}
@@ -98,5 +114,37 @@ target_link_libraries(process ${catkin_LIBRARIES} ${OpenCV_LIBS})
 #message(STATUS ${CATKIN_PACKAGE_BIN_DESTINATION})
 #catkin_install_python(PROGRAMS script/localize_QRcode.py
 # DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+# all install targets should use catkin DESTINATION variables
+# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
+
+## Mark executable scripts (Python etc.) for installation
+## in contrast to setup.py, you can choose the destination
+# install(PROGRAMS
+#   scripts/
+#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
+## Mark executables and/or libraries for installation
+# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+#install(TARGETS ${PROJECT_NAME}
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
+
+## Mark cpp header files for installation
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE
+# )
+
+## Mark other files for installation (e.g. launch and bag files, etc.)
+# install(FILES
+#   # myfile1
+#   # myfile2
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )
 
 

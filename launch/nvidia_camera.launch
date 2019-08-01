@@ -1,4 +1,20 @@
+<?xml version="1.0"?>
 <launch>
+
+    <!-- rviz -->
+    <arg name="model" default="$(find easyscan)/urdf/qrcode/urdf/qrcode.urdf"/>
+    <arg name="gui" default="true" />
+    <arg name="rvizconfig" default="$(find easyscan)/rviz/urdf.rviz" />   
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model)" />
+    <param name="use_gui" value="$(arg gui)"/>
+
+    <!--
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    -->
+    <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(arg rvizconfig)"/>
+
+    <!-- camera0 -->
     <node name="camera0"
         pkg="easyscan"
         type="camera_node"
@@ -13,6 +29,7 @@
 
     </node>
     
+    <!-- camera1 -->
     <node name="camera1"
         pkg="easyscan"
         type="camera_node"
@@ -26,21 +43,27 @@
  
     </node>
     
+    <!-- rectify the image -->
     <node name="image_proc0" pkg="image_proc" type="image_proc" ns="camera0"> </node>
-
     <node name="image_proc1" pkg="image_proc" type="image_proc" ns="camera1"> </node>
  
-    
+    <!-- localize qrcode --> 
     <node name="localize_node" pkg="easyscan" type="localize_QRcode.py" output="screen">
         <param name="imageNode" type="string" value="camera0/image_rect_color"/>    
+        <param name="infoNode" type="string" value="camera0/camera_info"/>
     </node>
-   
 
-
-    
+    <!-- find laser center -->
     <node name="laser_node" pkg="easyscan" type="laser_process.py" output="screen">
         <param name="imageNode" type="string" value="camera1/image_rect_color"/>
     </node>
+
+    <!-- build tf -->
+    <node name="laser_constructor" pkg="easyscan" type="laser_constructor.py" output="screen">
+        
+    </node>
+
+
 
    <!-- 
      <node name="gen_cloud_node" pkg="easyscan" type="generate_points_cloud.py" output="screen">

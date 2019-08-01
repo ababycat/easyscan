@@ -14,6 +14,11 @@ import message_filters
 import cv2
 from scipy.signal import convolve2d as conv2d
 
+from rospy.numpy_msg import numpy_msg
+from sensor_msgs.msg import PointCloud2
+import sensor_msgs.point_cloud2 as pcl2
+from easyscan.msg import npfloat32
+# from nparray_pointcloud import xyz_array_to_pointcloud2
 
 def findLaserCenter(img, ks=9):
     assert ks % 3 == 0
@@ -63,7 +68,7 @@ def findLaserCenter(img, ks=9):
     if nx.all():
         return np.stack([nx, ny], axis=1) 
     else:
-        return None
+        return np.array([])
 
 
 def drawCenter(img, points):
@@ -73,7 +78,7 @@ def drawCenter(img, points):
 
 
 def enhance_guidedFilter(img):
-    img = img.astype(np.float32) / 255
+    i, drawCentermg = img.astype(np.float32) / 255
     out = cv2.ximgproc.guidedFilter(img, img, 3, 0.01)
     img = (img - out) * 1 + out
     img = img * 255
@@ -83,6 +88,7 @@ def enhance_guidedFilter(img):
     return img
 
 image_pub = rospy.Publisher("results/laser", Image, queue_size=1)
+points_pub = rospy.Publisher("results/points2d", PointCloud2, queue_size=1)
 
 bridge = CvBridge()
 def callback(data):
@@ -96,6 +102,16 @@ def callback(data):
 
     img_msg = bridge.cv2_to_imgmsg(img, "bgr8")    
     image_pub.publish(img_msg)
+    
+    # points = np.array([[1, 2, 3], [3, 4, 5]], dtype=np.float32)
+    if points.any():
+        points = np.hstack((points, np.zeros((points.shape[0], 1))))
+    # points_cloud = xyz_array_to_pointcloud2(points, img_msg.header.stamp, img_msg.header.frame_id)
+    header = img_msg.header
+    points_cloud = pcl2.create_cloud_xyz32(header, points*0.1)
+    # base_link---tf-->>camera1
+    points_cloud.header.frame_id = "camera1"
+    points_pub.publish(points_cloud)
     rospy.loginfo("laser results published") 
 
 

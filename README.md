@@ -4,7 +4,7 @@ easyscan NOT easy
 
 ## Part 1 using ros
 ### Calibrate the camera
-Use ros package camera_calibration to get the camera intrinsic parameters. The calibration boards can found here [chessboard](./files/chessboard.pdf), [laser_plane](./files/laser_calibration(8x3)_20mm.pdf) 
+Use ros package camera_calibration to get the camera intrinsic parameters. And the details can be found [here](http://wiki.ros.org/camera_calibration/Tutorials/MonocularCalibration). The calibration boards can found here [chessboard](./files/chessboard.pdf), [laser_plane](./files/laser_calibration(8x3)_20mm.pdf) 
 1. calibrate the first camera
 ```roslaunch easyscan calibrate_camera0.launch```
 
@@ -12,6 +12,12 @@ Use ros package camera_calibration to get the camera intrinsic parameters. The c
 ```roslaunch easyscan calibrate_camera1.launch```
 
 Move the calibration results to folder `config`, and named the two yaml files as `ost0.yaml` and `ost1.yaml`.
+
+
+When the calibration of camera0 was done, you can use
+```roslaunch easyscan nvidia_camera.launch```
+to see the QRcode like this.
+![image](./files/show_qrcode.png) 
 
 3. calibrate the laser plane and camera
 
