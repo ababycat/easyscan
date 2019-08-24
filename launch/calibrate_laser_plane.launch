@@ -1,0 +1,35 @@
+<launch>
+    <node name="camera1"
+        pkg="easyscan"
+        type="camera_node"
+        output="screen"
+    >
+        <remap from="camera/image_raw" to="camera1/image_raw"/>
+        <param name="numberCameraName" type="bool" value="true"/>
+        <param name="cameraName" type="int" value="1"/>
+        <param name="needCameraInfo" type="bool" value="true"/>
+        <param name="cameraCalibrationFileName" type="string" value="$(find easyscan)/config/ost1.yaml"/>
+ 
+    </node>
+    
+    <node name="laser_node" pkg="easyscan" type="laser_process.py" output="screen">
+        <param name="imageNode" type="string" value="camera1/image_rect_color"/>
+    </node>
+
+
+    <node name="image_proc1" pkg="image_proc" type="image_proc" ns="camera1"> </node>
+ 
+    <node name="calibrate_laser_plane"
+        pkg="easyscan"
+        type="calibrate_laser_plane.py"
+        output="screen">
+
+        <param name="imageNode" type="string" value="camera1/image_rect_color"/>
+        <param name="size" type="string" value="8x3"/>
+        <param name="maxImageNum" type="int" value="10"/>
+        <param name="square" type="double" value="0.02"/>
+        
+        <param name="laserPoints2dName" type="string" value="results/points2d"/>
+    </node> 
+    
+</launch>

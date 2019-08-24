@@ -185,13 +185,13 @@ def callback(data):
     find_results = find_QRcode(img) 
     if find_results["abc_find_ok"] and find_results["little_find_ok"]:
         points = find_results["points"]
-        print('####################################3')
-        print(points)
+        # print('####################################3')
+        # print(points)
         # solved, rvec, tvec = cv2.solvePnP(object_points, points[1:, :], cameraMatrix, distCoeffs, rvec, tvec, useExtrinsicGuess=True, flags=cv2.SOLVEPNP_ITERATIVE) 
         solved, rvec, tvec = cv2.solvePnP(object_points, points, cameraMatrix, distCoeffs) # flags=cv2.SOLVEPNP_ITERATIVE) 
-        print(cameraMatrix)
-        print(distCoeffs)
-        print(solved, rvec, tvec) 
+        # print(cameraMatrix)
+        # print(distCoeffs)
+        # print(solved, rvec, tvec) 
         # publish place
         # TODO
                          
