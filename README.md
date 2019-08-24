@@ -1,8 +1,7 @@
 # using line laser scan objects
 
-easyscan NOT easy
+easyscan is NOT easy!
 
-## Part 1 using ros
 ### Calibrate the camera
 Use ros package camera_calibration to get the camera intrinsic parameters. And the details can be found [here](http://wiki.ros.org/camera_calibration/Tutorials/MonocularCalibration). The calibration boards can found here [chessboard](./files/chessboard.pdf), [laser_plane](./files/laser_calibration(8x3)_20mm.pdf) 
 1. calibrate the first camera
@@ -45,7 +44,6 @@ You can use this to see the results during the calibration.
 
 
 
-## Part 2 no ros
 
 
 
